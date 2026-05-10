@@ -1,7 +1,30 @@
 # ai-diving
 
+## docker hub webhook
+
+直接在docker hub webhook中添加以下url即可（邮箱需要填写真正的邮箱）：
+
+- `notify_force`: 是否强制推送，如果为true，则无论分析结论是否与上一次一致，都会推送。
+- `notify_data`: 接收邮箱
+
+`https://ai-diving.npmtrend.com/api/docker/analyze?token=bae95b6d-ed59-4516-b43d-ad39e493957f&notify_type=email&notify_data=你的邮箱&notify_force=true`
 
 
+## curl test
+
+```bash
+curl -v -XPOST -d '{
+  "push_data": {
+    "tag": "latest"
+  },
+  "repository": {
+    "repo_name": "vicanso/static"
+  }
+}' -H 'Content-Type: application/json' 'https://ai-diving.npmtrend.com/api/docker/analyze?token=bae95b6d-ed59-4516-b43d-ad39e493957f&notify_type=email&notify_data=你的邮箱&notify_force=true'
+```
+
+
+## dev
 ```bash
 docker run -d --restart=always \
   -p 5010:5000 \
