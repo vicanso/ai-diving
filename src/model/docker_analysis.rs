@@ -53,6 +53,18 @@ pub struct DockerAnalysisRecord {
     pub notify_force: bool,
 }
 
+/// 列表查询返回的精简记录（不含 user_id / 推送配置等）。
+#[derive(Debug, FromRow, Serialize)]
+pub struct DockerAnalysisRow {
+    pub id: i64,
+    pub repo_name: String,
+    pub tag: String,
+    pub status: i16,
+    pub result: Option<String>,
+    pub created: chrono::NaiveDateTime,
+    pub modified: chrono::NaiveDateTime,
+}
+
 /// 分析结果，同时保存 diving 原始诊断数据与 LLM 深度分析内容。
 #[derive(Debug, Serialize)]
 pub struct DockerAnalysisResult {
@@ -115,6 +127,25 @@ impl DockerAnalysisModel {
         .await
         .map_err(|e| Error::new(e.to_string()).with_category("docker"))?;
         Ok(row.0)
+    }
+
+    /// 按 repo_name 查询最近 20 条分析记录，按 created 倒序（公开查询，不区分用户）。
+    pub async fn list_by_repo_name(
+        pool: &PgPool,
+        repo_name: &str,
+    ) -> Result<Vec<DockerAnalysisRow>> {
+        let rows = sqlx::query_as::<_, DockerAnalysisRow>(
+            r#"SELECT id, repo_name, tag, status, result, created, modified
+               FROM docker_analyses
+               WHERE repo_name = $1
+               ORDER BY created DESC
+               LIMIT 20"#,
+        )
+        .bind(repo_name)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| Error::new(e.to_string()).with_category("docker"))?;
+        Ok(rows)
     }
 
     /// 查询24小时内处于 STATUS_WAITING 的记录 id 列表。
@@ -457,10 +488,10 @@ async fn analyze_image(record: &DockerAnalysisRecord) -> Result<DockerAnalysisRe
         "docker image llm analysis done",
     );
     // 记录 token 用量并扣减用户余额（失败仅日志告警，不阻断主流程）
-    if let Some(usage) = resp.usage.as_ref() {
-        if let Err(e) = consume_tokens(pool, record, &resp.model, usage, elapsed_ms).await {
-            error!(id = record.id, error = %e, "consume tokens failed");
-        }
+    if let Some(usage) = resp.usage.as_ref()
+        && let Err(e) = consume_tokens(pool, record, &resp.model, usage, elapsed_ms).await
+    {
+        error!(id = record.id, error = %e, "consume tokens failed");
     }
     if resp.content.is_empty() {
         warn!(id = record.id, "llm returned empty content");
@@ -644,15 +675,15 @@ async fn notify_result(record: &DockerAnalysisRecord, result: &DockerAnalysisRes
     }
 
     // 回退到全局配置
-    if let Some(token) = &config.notify_wecom {
-        if let Err(e) = send_wecom_notification(token, record, result).await {
-            error!(id = record.id, error = %e, "send wecom notification failed");
-        }
+    if let Some(token) = &config.notify_wecom
+        && let Err(e) = send_wecom_notification(token, record, result).await
+    {
+        error!(id = record.id, error = %e, "send wecom notification failed");
     }
-    if let Some(email) = &config.notify_email {
-        if let Err(e) = send_email_notification(config, email, record, result).await {
-            error!(id = record.id, error = %e, "send email notification failed");
-        }
+    if let Some(email) = &config.notify_email
+        && let Err(e) = send_email_notification(config, email, record, result).await
+    {
+        error!(id = record.id, error = %e, "send email notification failed");
     }
 }
 

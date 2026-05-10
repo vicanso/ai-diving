@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::model::docker_analysis::DockerAnalysisModel;
+use crate::model::docker_analysis::{DockerAnalysisModel, DockerAnalysisRow};
 use axum::Json;
 use axum::extract::{Query, State};
 use serde::{Deserialize, Serialize};
@@ -101,4 +101,18 @@ pub async fn analyze(
     .await?;
 
     Ok(Json(AnalyzeResp { id }))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DockerListQuery {
+    pub repo_name: String,
+}
+
+/// 按 repo_name 查询最近 20 条分析记录，按 created 倒序（公开查询）。
+pub async fn list(
+    State(pool): State<&'static PgPool>,
+    Query(q): Query<DockerListQuery>,
+) -> JsonResult<Vec<DockerAnalysisRow>> {
+    let rows = DockerAnalysisModel::list_by_repo_name(pool, &q.repo_name).await?;
+    Ok(Json(rows))
 }

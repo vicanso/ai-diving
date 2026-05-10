@@ -3,25 +3,23 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Card,
-    CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs";
+import { SubmitForm } from "@/views/submit-form";
+import { QueryView } from "@/views/query-view";
+import logoUrl from "@/logo.png";
 
 const API_BASE = "/api";
-const TOKEN = "bae95b6d-ed59-4516-b43d-ad39e493957f";
 
 type Theme = "light" | "dark";
-
-type SubmitState =
-    | { kind: "idle" }
-    | { kind: "submitting" }
-    | { kind: "success"; id: number; email: string }
-    | { kind: "error"; message: string };
 
 function getInitialTheme(): Theme {
     if (typeof document === "undefined") return "light";
@@ -68,10 +66,6 @@ function MoonIcon() {
 }
 
 function App() {
-    const [repoName, setRepoName] = useState("");
-    const [tag, setTag] = useState("latest");
-    const [email, setEmail] = useState("");
-    const [state, setState] = useState<SubmitState>({ kind: "idle" });
     const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
     useEffect(() => {
@@ -87,51 +81,8 @@ function App() {
     const toggleTheme = () =>
         setTheme((prev) => (prev === "dark" ? "light" : "dark"));
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const finalTag = tag.trim() || "latest";
-        const finalRepo = repoName.trim();
-        const finalEmail = email.trim();
-        setState({ kind: "submitting" });
-
-        const params = new URLSearchParams({
-            token: TOKEN,
-            notify_type: "email",
-            notify_data: finalEmail,
-            notify_force: "true",
-        });
-
-        try {
-            const res = await fetch(`${API_BASE}/docker/analyze?${params.toString()}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    push_data: { tag: finalTag },
-                    repository: { repo_name: finalRepo },
-                }),
-            });
-            if (!res.ok) {
-                const text = await res.text().catch(() => "");
-                setState({
-                    kind: "error",
-                    message: `${res.status} ${res.statusText}${text ? `: ${text}` : ""}`,
-                });
-                return;
-            }
-            const data = (await res.json()) as { id: number };
-            setState({ kind: "success", id: data.id, email: finalEmail });
-        } catch (err) {
-            setState({
-                kind: "error",
-                message: err instanceof Error ? err.message : String(err),
-            });
-        }
-    };
-
-    const submitting = state.kind === "submitting";
-
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-muted/30">
+        <div className="min-h-screen flex items-start justify-center p-6 bg-muted/30">
             <Button
                 variant="ghost"
                 size="icon"
@@ -143,77 +94,49 @@ function App() {
                 {theme === "dark" ? <SunIcon /> : <MoonIcon />}
             </Button>
 
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle>Docker 镜像分析</CardTitle>
-                    <CardDescription>
-                        提交一个公开的 Docker 镜像，分析完成后通过邮件发送报告。
-                    </CardDescription>
-                </CardHeader>
-                <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                    <CardContent className="flex flex-col gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="repo">
-                                镜像仓库名 <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="repo"
-                                placeholder="vicanso/static"
-                                value={repoName}
-                                onChange={(e) => setRepoName(e.target.value)}
-                                required
-                                disabled={submitting}
-                                autoComplete="off"
-                            />
-                        </div>
+            <div className="w-full max-w-2xl flex flex-col gap-4">
+                <div className="flex items-center justify-center gap-3">
+                    <img
+                        src={logoUrl}
+                        alt="AI Diving"
+                        className="size-9 rounded"
+                    />
+                    <span className="text-lg font-semibold tracking-tight">
+                        AI Diving
+                    </span>
+                </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="tag">Tag</Label>
-                            <Input
-                                id="tag"
-                                placeholder="latest"
-                                value={tag}
-                                onChange={(e) => setTag(e.target.value)}
-                                disabled={submitting}
-                                autoComplete="off"
-                            />
-                        </div>
+                <Tabs defaultValue="submit" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="submit">提交分析</TabsTrigger>
+                        <TabsTrigger value="query">查询历史</TabsTrigger>
+                    </TabsList>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">
-                                接收邮箱 <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="you@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                disabled={submitting}
-                                autoComplete="email"
-                            />
-                        </div>
+                    <TabsContent value="submit">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>提交镜像分析</CardTitle>
+                                <CardDescription>
+                                    提交一个公开的 Docker 镜像，分析完成后通过邮件发送报告。
+                                </CardDescription>
+                            </CardHeader>
+                            <SubmitForm apiBase={API_BASE} />
+                        </Card>
+                    </TabsContent>
 
-                        {state.kind === "success" && (
-                            <p className="text-sm rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
-                                ✅ 已提交（任务 ID #{state.id}），完成后会发送邮件至 {state.email}。
-                            </p>
-                        )}
-                        {state.kind === "error" && (
-                            <p className="text-sm rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-destructive dark:border-destructive/60 dark:bg-destructive/10">
-                                ❌ 提交失败：{state.message}
-                            </p>
-                        )}
-                    </CardContent>
-
-                    <CardFooter>
-                        <Button type="submit" className="w-full" disabled={submitting}>
-                            {submitting ? "提交中..." : "开始分析"}
-                        </Button>
-                    </CardFooter>
-                </form>
-            </Card>
+                    <TabsContent value="query">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>查询历史</CardTitle>
+                                <CardDescription>
+                                    按镜像仓库名查询最近 20 条分析记录，按时间倒序。
+                                </CardDescription>
+                            </CardHeader>
+                            <QueryView apiBase={API_BASE} />
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+            </div>
         </div>
     );
 }

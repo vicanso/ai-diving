@@ -69,8 +69,6 @@ pub struct BasicConfig {
     // commit id
     #[serde(default = "default_commit_id")]
     pub commit_id: String,
-    // region
-    pub region: Option<String>,
 }
 
 static BASIC_CONFIG: OnceCell<BasicConfig> = OnceCell::new();

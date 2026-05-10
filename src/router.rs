@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::admin_web::serve_web;
 use crate::cache::get_redis_cache;
 use crate::config::must_get_basic_config;
 use crate::dal::get_opendal_storage;
-use crate::docker::analyze as docker_analyze;
+use crate::docker::{analyze as docker_analyze, list as docker_list};
 use crate::sql::get_db_pool;
 use crate::state::get_app_state;
-use crate::admin_web::serve_web;
 use axum::Router;
-use axum::routing::post;
+use axum::routing::{get, post};
 use std::sync::Arc;
 use tibba_error::Error;
 use tibba_model::Model;
@@ -132,6 +132,7 @@ pub fn new_router() -> Result<Router> {
 
     let docker_router = Router::new()
         .route("/analyze", post(docker_analyze))
+        .route("/analyses", get(docker_list))
         .with_state(get_db_pool());
 
     // API 路由挂在可配置的 prefix 下（如 /api），静态文件始终在根路径
