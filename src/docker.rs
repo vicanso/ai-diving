@@ -122,3 +122,9 @@ pub async fn list(
     let rows = DockerAnalysisModel::list_recent(pool, repo_name).await?;
     Ok(Json(rows))
 }
+
+/// 返回最近有分析记录的 10 个不同仓库名，给前端的下拉建议用。
+pub async fn list_repo_names(State(pool): State<&'static PgPool>) -> JsonResult<Vec<String>> {
+    let names = DockerAnalysisModel::list_recent_repo_names(pool).await?;
+    Ok(Json(names))
+}

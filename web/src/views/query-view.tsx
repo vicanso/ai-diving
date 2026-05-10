@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Markdown } from "@/components/markdown";
 import { Button } from "@/components/ui/button";
@@ -77,8 +77,26 @@ type FetchState =
 
 export function QueryView({ apiBase }: Props) {
     const [repoName, setRepoName] = useState("");
+    const [repoSuggestions, setRepoSuggestions] = useState<string[]>([]);
     const [state, setState] = useState<FetchState>({ kind: "idle" });
     const [expandedId, setExpandedId] = useState<number | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch(`${apiBase}/docker/repo_names`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((names: string[]) => {
+                if (!cancelled && Array.isArray(names)) {
+                    setRepoSuggestions(names);
+                }
+            })
+            .catch(() => {
+                // 静默失败，下拉建议不可用不影响主流程
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [apiBase]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -128,7 +146,13 @@ export function QueryView({ apiBase }: Props) {
                             required
                             disabled={loading}
                             autoComplete="off"
+                            list="q-repo-suggestions"
                         />
+                        <datalist id="q-repo-suggestions">
+                            {repoSuggestions.map((name) => (
+                                <option key={name} value={name} />
+                            ))}
+                        </datalist>
                     </div>
 
                     <Button type="submit" className="w-full" disabled={loading}>

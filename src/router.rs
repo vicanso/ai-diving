@@ -16,7 +16,9 @@ use crate::admin_web::serve_web;
 use crate::cache::get_redis_cache;
 use crate::config::must_get_basic_config;
 use crate::dal::get_opendal_storage;
-use crate::docker::{analyze as docker_analyze, list as docker_list};
+use crate::docker::{
+    analyze as docker_analyze, list as docker_list, list_repo_names as docker_list_repo_names,
+};
 use crate::sql::get_db_pool;
 use crate::state::get_app_state;
 use axum::Router;
@@ -133,6 +135,7 @@ pub fn new_router() -> Result<Router> {
     let docker_router = Router::new()
         .route("/analyze", post(docker_analyze))
         .route("/analyses", get(docker_list))
+        .route("/repo_names", get(docker_list_repo_names))
         .with_state(get_db_pool());
 
     // API 路由挂在可配置的 prefix 下（如 /api），静态文件始终在根路径

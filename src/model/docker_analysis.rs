@@ -160,6 +160,21 @@ impl DockerAnalysisModel {
         Ok(rows)
     }
 
+    /// 返回最近有分析记录的 10 个不同仓库名，按各自最新一次 created 倒序。
+    pub async fn list_recent_repo_names(pool: &PgPool) -> Result<Vec<String>> {
+        let rows: Vec<(String,)> = sqlx::query_as(
+            r#"SELECT repo_name
+               FROM docker_analyses
+               GROUP BY repo_name
+               ORDER BY MAX(created) DESC
+               LIMIT 10"#,
+        )
+        .fetch_all(pool)
+        .await
+        .map_err(|e| Error::new(e.to_string()).with_category("docker"))?;
+        Ok(rows.into_iter().map(|r| r.0).collect())
+    }
+
     /// 查询24小时内处于 STATUS_WAITING 的记录 id 列表。
     pub async fn list_waiting_ids(pool: &PgPool) -> Result<Vec<i64>> {
         let rows: Vec<(i64,)> = sqlx::query_as(
