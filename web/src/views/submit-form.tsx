@@ -8,10 +8,12 @@ import { Label } from "@/components/ui/label";
 
 const DEFAULT_TOKEN = "bae95b6d-ed59-4516-b43d-ad39e493957f";
 
+type NotifyType = "email" | "wecom";
+
 type SubmitState =
     | { kind: "idle" }
     | { kind: "submitting" }
-    | { kind: "success"; id: number; email: string }
+    | { kind: "success"; id: number; notifyType: NotifyType; notifyData: string }
     | { kind: "error"; message: string };
 
 interface Props {
@@ -21,7 +23,8 @@ interface Props {
 export function SubmitForm({ apiBase }: Props) {
     const [repoName, setRepoName] = useState("");
     const [tag, setTag] = useState("latest");
-    const [email, setEmail] = useState("");
+    const [notifyType, setNotifyType] = useState<NotifyType>("email");
+    const [notifyData, setNotifyData] = useState("");
     const [token, setToken] = useState(DEFAULT_TOKEN);
     const [notifyForce, setNotifyForce] = useState(false);
     const [state, setState] = useState<SubmitState>({ kind: "idle" });
@@ -30,14 +33,14 @@ export function SubmitForm({ apiBase }: Props) {
         e.preventDefault();
         const finalTag = tag.trim() || "latest";
         const finalRepo = repoName.trim();
-        const finalEmail = email.trim();
+        const finalNotifyData = notifyData.trim();
         const finalToken = token.trim();
         setState({ kind: "submitting" });
 
         const params = new URLSearchParams({
             token: finalToken,
-            notify_type: "email",
-            notify_data: finalEmail,
+            notify_type: notifyType,
+            notify_data: finalNotifyData,
             notify_force: notifyForce ? "true" : "false",
         });
 
@@ -59,7 +62,12 @@ export function SubmitForm({ apiBase }: Props) {
                 return;
             }
             const data = (await res.json()) as { id: number };
-            setState({ kind: "success", id: data.id, email: finalEmail });
+            setState({
+                kind: "success",
+                id: data.id,
+                notifyType,
+                notifyData: finalNotifyData,
+            });
         } catch (err) {
             setState({
                 kind: "error",
@@ -69,6 +77,24 @@ export function SubmitForm({ apiBase }: Props) {
     };
 
     const submitting = state.kind === "submitting";
+
+    const switchNotifyType = (t: NotifyType) => {
+        if (t === notifyType) return;
+        setNotifyType(t);
+        setNotifyData("");
+    };
+
+    const isEmail = notifyType === "email";
+    const notifyLabel = isEmail ? "接收邮箱" : "企业微信机器人 Key";
+    const notifyPlaceholder = isEmail
+        ? "you@example.com"
+        : "WeCom 机器人 webhook URL 中 ?key= 之后那段";
+    const successText =
+        state.kind === "success"
+            ? state.notifyType === "email"
+                ? `完成后会发送邮件至 ${state.notifyData}。`
+                : `完成后会推送至企业微信机器人。`
+            : "";
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
@@ -101,18 +127,45 @@ export function SubmitForm({ apiBase }: Props) {
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="email">
-                        接收邮箱 <span className="text-destructive">*</span>
+                    <Label>通知方式</Label>
+                    <div className="flex gap-2">
+                        <Button
+                            type="button"
+                            variant={isEmail ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => switchNotifyType("email")}
+                            disabled={submitting}
+                            className="flex-1"
+                        >
+                            邮件
+                        </Button>
+                        <Button
+                            type="button"
+                            variant={!isEmail ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => switchNotifyType("wecom")}
+                            disabled={submitting}
+                            className="flex-1"
+                        >
+                            企业微信
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="grid gap-2">
+                    <Label htmlFor="notify-data">
+                        {notifyLabel} <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                        id="email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        id="notify-data"
+                        type={isEmail ? "email" : "text"}
+                        placeholder={notifyPlaceholder}
+                        value={notifyData}
+                        onChange={(e) => setNotifyData(e.target.value)}
                         required
                         disabled={submitting}
-                        autoComplete="email"
+                        autoComplete={isEmail ? "email" : "off"}
+                        spellCheck={false}
                     />
                 </div>
 
@@ -126,10 +179,10 @@ export function SubmitForm({ apiBase }: Props) {
                     />
                     <div className="grid gap-1">
                         <Label htmlFor="notify-force" className="cursor-pointer">
-                            强制发送邮件
+                            强制推送
                         </Label>
                         <p className="text-xs text-muted-foreground">
-                            默认情况下，分析结论与上次一致时会静默不发邮件。勾选后即使结论一致也仍然发送。
+                            默认情况下，分析结论与上次一致时会静默不推送。勾选后即使结论一致也仍然发送。
                         </p>
                     </div>
                 </div>
@@ -154,7 +207,7 @@ export function SubmitForm({ apiBase }: Props) {
 
                 {state.kind === "success" && (
                     <p className="text-sm rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
-                        ✅ 已提交（任务 ID #{state.id}），完成后会发送邮件至 {state.email}。
+                        ✅ 已提交（任务 ID #{state.id}），{successText}
                     </p>
                 )}
                 {state.kind === "error" && (
