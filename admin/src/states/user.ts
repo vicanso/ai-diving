@@ -19,8 +19,9 @@ import {
     ReceiptIcon,
     TagIcon,
     BotIcon,
+    ContainerIcon,
 } from "lucide-react";
-import { HOME, LOGIN_HISTORY, MODEL } from "@/constants/route";
+import { HOME, LOGIN_HISTORY, MODEL, DOCKER_ANALYSIS } from "@/constants/route";
 
 import {
     USER_LOGIN,
@@ -89,6 +90,12 @@ const adminMainNav: NavGroup[] = [
                 url: `${MODEL}/configuration`,
                 roles: ["su", "admin"],
                 icon: CogIcon,
+            },
+            {
+                title: "dockerAnalysis",
+                url: DOCKER_ANALYSIS,
+                roles: ["su", "admin"],
+                icon: ContainerIcon,
             },
         ],
     },

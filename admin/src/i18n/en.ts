@@ -9,6 +9,7 @@ const sidebar = {
     modelFeature: "Model",
     file: "File",
     config: "Config",
+    dockerAnalysis: "Docker Analysis",
     httpStat: "HttpStat",
     httpDetector: "HttpDetector",
     webPageDetector: "WebPageDetector",
@@ -99,6 +100,32 @@ const model = {
     create: "Create",
 };
 
+const dockerAnalysis = {
+    title: "Docker Analysis",
+    description:
+        "Query the latest 20 analysis records by repository name, ordered by created time desc",
+    repoName: "Repository Name",
+    repoNamePlaceholder: "e.g. vicanso/static",
+    search: "Search",
+    searching: "Searching...",
+    columnTag: "Repo:Tag",
+    columnStatus: "Status",
+    columnCreated: "Created",
+    columnAction: "Action",
+    statusWaiting: "Waiting",
+    statusProcessing: "Processing",
+    statusCompleted: "Completed",
+    statusFailed: "Failed",
+    detail: "Detail",
+    expand: "Expand",
+    collapse: "Collapse",
+    diving: "Raw Diving Result",
+    elapsed: "Elapsed {ms}ms",
+    incomplete: "Analysis not yet completed",
+    noRecords: "No records found",
+    fetchFailed: "Failed to fetch: {message}",
+};
+
 const modelEditor = {
     update: "Update",
     create: "Create",
@@ -131,4 +158,5 @@ export default {
     model,
     modelEditor,
     component,
+    dockerAnalysis,
 };

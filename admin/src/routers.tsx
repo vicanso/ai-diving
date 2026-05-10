@@ -8,6 +8,7 @@ import Profile from "@/pages/Profile";
 import Model from "@/pages/Model";
 import ModelEditor from "@/pages/ModelEditor";
 import FileUploader from "@/pages/FileUploader";
+import DockerAnalysis from "@/pages/DockerAnalysis";
 
 import {
     LOGIN_HISTORY,
@@ -18,6 +19,7 @@ import {
     MODEL,
     MODEL_EDITOR,
     FILE_UPLOADER,
+    DOCKER_ANALYSIS,
 } from "@/constants/route";
 
 const router = createHashRouter([
@@ -56,6 +58,10 @@ const router = createHashRouter([
             {
                 path: `${FILE_UPLOADER}`,
                 element: <FileUploader />,
+            },
+            {
+                path: DOCKER_ANALYSIS,
+                element: <DockerAnalysis />,
             },
         ],
     },

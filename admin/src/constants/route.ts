@@ -7,3 +7,5 @@ export const LOGIN_HISTORY = "/login-history";
 export const MODEL = "/model";
 export const MODEL_EDITOR = "/model-editor";
 export const FILE_UPLOADER = "/file-uploader";
+
+export const DOCKER_ANALYSIS = "/docker-analysis";

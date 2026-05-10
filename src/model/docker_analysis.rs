@@ -129,21 +129,33 @@ impl DockerAnalysisModel {
         Ok(row.0)
     }
 
-    /// 按 repo_name 查询最近 20 条分析记录，按 created 倒序（公开查询，不区分用户）。
-    pub async fn list_by_repo_name(
+    /// 查询最近 20 条分析记录，按 created 倒序。
+    /// `repo_name` 为 `Some` 时按仓库名过滤，为 `None` 时返回全局最近 20 条。
+    pub async fn list_recent(
         pool: &PgPool,
-        repo_name: &str,
+        repo_name: Option<&str>,
     ) -> Result<Vec<DockerAnalysisRow>> {
-        let rows = sqlx::query_as::<_, DockerAnalysisRow>(
-            r#"SELECT id, repo_name, tag, status, result, created, modified
-               FROM docker_analyses
-               WHERE repo_name = $1
-               ORDER BY created DESC
-               LIMIT 20"#,
-        )
-        .bind(repo_name)
-        .fetch_all(pool)
-        .await
+        let rows = if let Some(repo_name) = repo_name {
+            sqlx::query_as::<_, DockerAnalysisRow>(
+                r#"SELECT id, repo_name, tag, status, result, created, modified
+                   FROM docker_analyses
+                   WHERE repo_name = $1
+                   ORDER BY created DESC
+                   LIMIT 20"#,
+            )
+            .bind(repo_name)
+            .fetch_all(pool)
+            .await
+        } else {
+            sqlx::query_as::<_, DockerAnalysisRow>(
+                r#"SELECT id, repo_name, tag, status, result, created, modified
+                   FROM docker_analyses
+                   ORDER BY created DESC
+                   LIMIT 20"#,
+            )
+            .fetch_all(pool)
+            .await
+        }
         .map_err(|e| Error::new(e.to_string()).with_category("docker"))?;
         Ok(rows)
     }

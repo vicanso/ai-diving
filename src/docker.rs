@@ -105,14 +105,20 @@ pub async fn analyze(
 
 #[derive(Debug, Deserialize)]
 pub struct DockerListQuery {
-    pub repo_name: String,
+    /// 可选：不传或传空字符串时返回全局最近 20 条。
+    pub repo_name: Option<String>,
 }
 
-/// 按 repo_name 查询最近 20 条分析记录，按 created 倒序（公开查询）。
+/// 查询最近 20 条分析记录，按 created 倒序。`repo_name` 可选。
 pub async fn list(
     State(pool): State<&'static PgPool>,
     Query(q): Query<DockerListQuery>,
 ) -> JsonResult<Vec<DockerAnalysisRow>> {
-    let rows = DockerAnalysisModel::list_by_repo_name(pool, &q.repo_name).await?;
+    let repo_name = q
+        .repo_name
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty());
+    let rows = DockerAnalysisModel::list_recent(pool, repo_name).await?;
     Ok(Json(rows))
 }

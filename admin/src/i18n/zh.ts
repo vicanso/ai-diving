@@ -9,6 +9,7 @@ const sidebar = {
     modelFeature: "模型",
     file: "文件",
     config: "配置",
+    dockerAnalysis: "Docker 分析",
     httpStat: "Http统计",
     httpDetector: "Http检测器",
     webPageDetector: "网页检测器",
@@ -99,6 +100,31 @@ const model = {
     create: "创建",
 };
 
+const dockerAnalysis = {
+    title: "Docker 分析",
+    description: "按镜像仓库名查询最近 20 条分析记录，按时间倒序",
+    repoName: "镜像仓库名",
+    repoNamePlaceholder: "例如：vicanso/static",
+    search: "查询",
+    searching: "查询中...",
+    columnTag: "Repo:Tag",
+    columnStatus: "状态",
+    columnCreated: "创建时间",
+    columnAction: "操作",
+    statusWaiting: "等待中",
+    statusProcessing: "分析中",
+    statusCompleted: "已完成",
+    statusFailed: "失败",
+    detail: "详情",
+    expand: "展开",
+    collapse: "折叠",
+    diving: "Diving 原始诊断",
+    elapsed: "耗时 {ms}ms",
+    incomplete: "分析尚未完成",
+    noRecords: "未找到记录",
+    fetchFailed: "查询失败：{message}",
+};
+
 const modelEditor = {
     update: "更新",
     create: "创建",
@@ -131,4 +157,5 @@ export default {
     model,
     modelEditor,
     component,
+    dockerAnalysis,
 };
