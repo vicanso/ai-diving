@@ -1,0 +1,13 @@
+# redis config
+[redis]
+uri = "redis://127.0.0.1:6379"
+
+# session config
+[session]
+secret = "y0nEeTWOF0Ud8XNoTfYacGC6MrKgxIUnJV1kv0PBh83IeKmyHtuJ5uqGa7hcfBSu"
+
+[database]
+uri = "postgres://vicanso:A123456@127.0.0.1:5432/aidiving"
+
+
+# url = "mysql://vicanso:A123123@localhost:3306/tibba"

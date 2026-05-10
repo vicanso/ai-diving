@@ -1,0 +1,9 @@
+\i create_users.sql
+\i create_configurations.sql
+\i create_token_accounts.sql
+\i create_token_recharges.sql
+\i create_token_usages.sql
+\i create_token_keys.sql
+\i create_token_prices.sql
+\i create_token_llms.sql
+\i create_docker_analyses.sql
