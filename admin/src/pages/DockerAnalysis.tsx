@@ -25,8 +25,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
+import dayjs from "dayjs";
+
 import request from "@/helpers/request";
-import { formatDate, formatError } from "@/helpers/util";
+import { formatError } from "@/helpers/util";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import useBasicState from "@/states/basic";
@@ -54,6 +56,14 @@ const STATUS_CLASSES: Record<number, string> = {
     2: "bg-emerald-100 text-emerald-900 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-900",
     3: "bg-destructive/10 text-destructive border-destructive/40 dark:bg-destructive/20",
 };
+
+// 后端 chrono::NaiveDateTime 序列化为不带时区的 ISO（如 "2026-05-10T12:34:56"）。
+// 数据库实际存的是 UTC，这里显式补 Z 后让 dayjs 按 UTC 解析、再用本地时区格式化。
+function formatLocalTime(s: string): string {
+    if (!s) return "--";
+    const ts = /Z$|[+-]\d{2}:?\d{2}$/.test(s) ? s : `${s}Z`;
+    return dayjs(ts).format("YYYY-MM-DD HH:mm:ss");
+}
 
 function parseResult(row: AnalysisRow): ParsedResult | null {
     if (row.status !== 2 || !row.result) return null;
@@ -244,7 +254,7 @@ export default function DockerAnalysis() {
                                                     </span>
                                                 </TableCell>
                                                 <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
-                                                    {formatDate(row.created)}
+                                                    {formatLocalTime(row.created)}
                                                 </TableCell>
                                             </TableRow>
                                             {expanded && (
