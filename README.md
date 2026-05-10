@@ -5,7 +5,7 @@
 docker pull postgres:18-alpine
 
 docker run -d --restart=always \
-  -v $PWD/postgres:/var/lib/postgresql \
+  -v /opt/ai-diving/postgres:/var/lib/postgresql \
   -e POSTGRES_PASSWORD=A123456 \
   -p 5432:5432 \
   --name=ai-diving-postgres \

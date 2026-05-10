@@ -176,7 +176,7 @@ fn new_config() -> Result<&'static Config> {
         }
 
         let data: Vec<&str> = arr.iter().map(|s| s.as_str()).collect();
-        let config = tibba_config::Config::new(&data, Some("TIBBA_WEB"))?;
+        let config = tibba_config::Config::new(&data, Some("AIDIVING"))?;
         Ok(config)
     })
 }
