@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { CardContent, CardFooter } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -22,6 +23,7 @@ export function SubmitForm({ apiBase }: Props) {
     const [tag, setTag] = useState("latest");
     const [email, setEmail] = useState("");
     const [token, setToken] = useState(DEFAULT_TOKEN);
+    const [notifyForce, setNotifyForce] = useState(false);
     const [state, setState] = useState<SubmitState>({ kind: "idle" });
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -36,7 +38,7 @@ export function SubmitForm({ apiBase }: Props) {
             token: finalToken,
             notify_type: "email",
             notify_data: finalEmail,
-            notify_force: "true",
+            notify_force: notifyForce ? "true" : "false",
         });
 
         try {
@@ -112,6 +114,24 @@ export function SubmitForm({ apiBase }: Props) {
                         disabled={submitting}
                         autoComplete="email"
                     />
+                </div>
+
+                <div className="flex items-start gap-2">
+                    <Checkbox
+                        id="notify-force"
+                        checked={notifyForce}
+                        onCheckedChange={(v) => setNotifyForce(v === true)}
+                        disabled={submitting}
+                        className="mt-0.5"
+                    />
+                    <div className="grid gap-1">
+                        <Label htmlFor="notify-force" className="cursor-pointer">
+                            强制发送邮件
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                            默认情况下，分析结论与上次一致时会静默不发邮件。勾选后即使结论一致也仍然发送。
+                        </p>
+                    </div>
                 </div>
 
                 <div className="grid gap-2">
