@@ -1,6 +1,18 @@
 # ai-diving
 
 
+
+```bash
+docker run -d --restart=always \
+  -p 5010:5000 \
+  -e RUST_ENV=production \
+  -e AIDIVING__REDIS__URI=redis://172.18.230.75:6379 \
+  -e AIDIVING__DATABASE__URI=postgres://vicanso:***@172.18.230.75:5432/aidiving \
+  -e AIDIVING__SESSION__SECRET=*** \
+  --name=ai-diving \
+  vicanso/ai-diving
+```
+
 ```bash
 docker pull postgres:18-alpine
 
