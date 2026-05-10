@@ -35,22 +35,16 @@ pub struct DockerTokenQuery {
 
 #[derive(Debug, Deserialize)]
 pub struct DockerPushData {
-    pub pushed_at: i64,
-    pub pusher: String,
     pub tag: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct DockerRepository {
-    pub name: String,
-    pub namespace: String,
-    pub owner: String,
     pub repo_name: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct DockerWebhookPayload {
-    pub callback_url: Option<String>,
     pub push_data: DockerPushData,
     pub repository: DockerRepository,
 }

@@ -15,6 +15,7 @@
 use crate::config::{DivingConfig, must_get_diving_config};
 use crate::sql::get_db_pool;
 use ctor::ctor;
+use pulldown_cmark::{Options, Parser, html as cmark_html};
 use resend_rs::Resend;
 use resend_rs::types::CreateEmailBaseOptions;
 use serde::{Deserialize, Serialize};
@@ -512,6 +513,46 @@ async fn send_wecom_notification(
     Ok(())
 }
 
+/// 将 markdown 渲染为 HTML 片段（启用 GFM 表格、删除线、任务列表）。
+fn markdown_to_html(md: &str) -> String {
+    let mut options = Options::empty();
+    options.insert(Options::ENABLE_TABLES);
+    options.insert(Options::ENABLE_STRIKETHROUGH);
+    options.insert(Options::ENABLE_TASKLISTS);
+    let parser = Parser::new_ext(md, options);
+    let mut out = String::new();
+    cmark_html::push_html(&mut out, parser);
+    out
+}
+
+fn escape_html(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for ch in s.chars() {
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            _ => out.push(ch),
+        }
+    }
+    out
+}
+
+const EMAIL_HTML_STYLE: &str = r#"<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:760px;margin:0 auto;padding:16px;line-height:1.55;color:#24292f}
+pre{background:#f6f8fa;padding:12px;border-radius:6px;overflow:auto;font-size:13px}
+code{background:rgba(175,184,193,0.2);padding:2px 4px;border-radius:3px;font-size:85%}
+pre code{background:transparent;padding:0;font-size:100%}
+h1,h2,h3{padding-bottom:4px;border-bottom:1px solid #eaecef;margin-top:1.4em}
+hr{border:0;border-top:1px solid #eaecef;margin:1.5em 0}
+table{border-collapse:collapse}
+th,td{border:1px solid #d0d7de;padding:6px 13px}
+.meta{color:#57606a;font-size:14px}
+details summary{cursor:pointer;color:#0969da}
+</style>"#;
+
 async fn send_email_notification(
     config: &DivingConfig,
     to: &str,
@@ -528,7 +569,8 @@ async fn send_email_notification(
         .ok_or_else(|| Error::new("resend_api_key not configured").with_category("docker"))?;
 
     let subject = format!("Docker Analysis: {}:{}", record.repo_name, record.tag);
-    let body = format!(
+
+    let plain_body = format!(
         "Image: {}:{}\nAnalysis ID: {}\nElapsed: {}ms\n\n{}\n\n---\nDiving Result:\n{}",
         record.repo_name,
         record.tag,
@@ -538,7 +580,31 @@ async fn send_email_notification(
         result.diving_result,
     );
 
-    let email = CreateEmailBaseOptions::new(from_addr, [to], subject).with_text(&body);
+    let html_body = format!(
+        r#"<!DOCTYPE html>
+<html><head><meta charset="utf-8">{style}</head><body>
+<p class="meta"><strong>Image:</strong> {repo}:{tag}<br>
+<strong>Analysis ID:</strong> {id}<br>
+<strong>Elapsed:</strong> {elapsed}ms</p>
+<hr>
+{llm_html}
+<hr>
+<details><summary>Diving Result</summary>
+{diving_html}
+</details>
+</body></html>"#,
+        style = EMAIL_HTML_STYLE,
+        repo = escape_html(&record.repo_name),
+        tag = escape_html(&record.tag),
+        id = record.id,
+        elapsed = result.elapsed_ms,
+        llm_html = markdown_to_html(&result.llm_result),
+        diving_html = markdown_to_html(&result.diving_result),
+    );
+
+    let email = CreateEmailBaseOptions::new(from_addr, [to], subject)
+        .with_text(&plain_body)
+        .with_html(&html_body);
 
     Resend::new(api_key)
         .emails
