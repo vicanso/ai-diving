@@ -9,6 +9,7 @@ import Model from "@/pages/Model";
 import ModelEditor from "@/pages/ModelEditor";
 import FileUploader from "@/pages/FileUploader";
 import DockerAnalysis from "@/pages/DockerAnalysis";
+import BalanceAdjust from "@/pages/BalanceAdjust";
 
 import {
     LOGIN_HISTORY,
@@ -20,6 +21,7 @@ import {
     MODEL_EDITOR,
     FILE_UPLOADER,
     DOCKER_ANALYSIS,
+    BALANCE_ADJUST,
 } from "@/constants/route";
 
 const router = createHashRouter([
@@ -62,6 +64,10 @@ const router = createHashRouter([
             {
                 path: DOCKER_ANALYSIS,
                 element: <DockerAnalysis />,
+            },
+            {
+                path: BALANCE_ADJUST,
+                element: <BalanceAdjust />,
             },
         ],
     },

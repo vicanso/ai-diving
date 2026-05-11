@@ -20,8 +20,15 @@ import {
     TagIcon,
     BotIcon,
     ContainerIcon,
+    CoinsIcon,
 } from "lucide-react";
-import { HOME, LOGIN_HISTORY, MODEL, DOCKER_ANALYSIS } from "@/constants/route";
+import {
+    HOME,
+    LOGIN_HISTORY,
+    MODEL,
+    DOCKER_ANALYSIS,
+    BALANCE_ADJUST,
+} from "@/constants/route";
 
 import {
     USER_LOGIN,
@@ -108,6 +115,12 @@ const adminMainNav: NavGroup[] = [
                 url: `${MODEL}/token_account`,
                 roles: ["su", "admin"],
                 icon: WalletIcon,
+            },
+            {
+                title: "balanceAdjust",
+                url: BALANCE_ADJUST,
+                roles: ["su", "admin"],
+                icon: CoinsIcon,
             },
             {
                 title: "tokenRecharge",

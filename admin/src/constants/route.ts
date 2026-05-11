@@ -9,3 +9,4 @@ export const MODEL_EDITOR = "/model-editor";
 export const FILE_UPLOADER = "/file-uploader";
 
 export const DOCKER_ANALYSIS = "/docker-analysis";
+export const BALANCE_ADJUST = "/balance-adjust";

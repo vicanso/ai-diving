@@ -17,6 +17,7 @@ const sidebar = {
     detectorGroupUser: "用户分组用户",
     tokenFeature: "Token 计费",
     tokenAccount: "账户余额",
+    balanceAdjust: "余额调整",
     tokenRecharge: "充值记录",
     tokenUsage: "消耗记录",
     tokenKey: "API 密钥",
@@ -100,6 +101,24 @@ const model = {
     create: "创建",
 };
 
+const balanceAdjust = {
+    title: "余额调整",
+    description: "通过充值/扣减给用户的 token 账户加减积分。正数走 token_recharges 流水，负数走 token_usages 流水，全部保留审计。",
+    userAccount: "用户账号",
+    userAccountPlaceholder: "输入账号关键字搜索",
+    selectedUserId: "已选用户 ID",
+    amount: "调整金额",
+    amountHelp: "正数充值（写入 token_recharges, source = ADMIN），负数扣减（写入 token_usages, service = admin_adjust）。",
+    remark: "备注",
+    remarkPlaceholder: "选填，将写入流水记录",
+    submit: "调整",
+    submitting: "提交中...",
+    submitSuccess: "调整成功",
+    newBalance: "调整后余额",
+    errInvalidUserId: "请先从下拉中选择一个用户",
+    errInvalidAmount: "调整金额必须为非零整数",
+};
+
 const dockerAnalysis = {
     title: "Docker 分析",
     description: "按镜像仓库名查询最近 20 条分析记录，按时间倒序",
@@ -158,4 +177,5 @@ export default {
     modelEditor,
     component,
     dockerAnalysis,
+    balanceAdjust,
 };

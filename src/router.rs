@@ -21,6 +21,7 @@ use crate::docker::{
 };
 use crate::sql::get_db_pool;
 use crate::state::get_app_state;
+use crate::token::adjust_balance as token_adjust_balance;
 use axum::Router;
 use axum::routing::{get, post};
 use std::sync::Arc;
@@ -138,12 +139,17 @@ pub fn new_router() -> Result<Router> {
         .route("/repo_names", get(docker_list_repo_names))
         .with_state(get_db_pool());
 
+    let token_router = Router::new()
+        .route("/balance/adjust", post(token_adjust_balance))
+        .with_state(get_db_pool());
+
     // API 路由挂在可配置的 prefix 下（如 /api），静态文件始终在根路径
     let api_router = Router::new()
         .nest("/users", user_router)
         .nest("/files", file_router)
         .nest("/models", model_router)
         .nest("/docker", docker_router)
+        .nest("/token", token_router)
         .merge(common_router);
 
     let app = if let Some(prefix) = &basic_config.prefix {

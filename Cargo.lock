@@ -5160,9 +5160,9 @@ dependencies = [
 
 [[package]]
 name = "tibba-model"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d90f6beda1502e631b99439c1bdaddcd92ab6423d242f6e136568cd3182e1bed"
+checksum = "ab0d42c6bbfff328151262b4b4a984f8396986d3a9e2f6f916759862caf5b50b"
 dependencies = [
  "chrono",
  "http",
@@ -5196,9 +5196,9 @@ dependencies = [
 
 [[package]]
 name = "tibba-model-token"
-version = "0.2.3"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e51bc4dfbf6e40cf2d2e08b599458d36cceea60446ab647e42f6b5f507ebc663"
+checksum = "0a53faa567f1cad1d35ab18d09d3d48e48f51184f1339c193887f2d9b3b19b8b"
 dependencies = [
  "serde",
  "serde_json",

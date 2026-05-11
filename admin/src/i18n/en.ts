@@ -17,6 +17,7 @@ const sidebar = {
     detectorGroupUser: "DetectorGroupUser",
     tokenFeature: "Token Billing",
     tokenAccount: "Accounts",
+    balanceAdjust: "Adjust Balance",
     tokenRecharge: "Recharges",
     tokenUsage: "Usages",
     tokenKey: "API Keys",
@@ -100,6 +101,26 @@ const model = {
     create: "Create",
 };
 
+const balanceAdjust = {
+    title: "Adjust Balance",
+    description:
+        "Recharge or deduct a user's token account. Positive amount writes a token_recharges row; negative amount writes a token_usages row. Audit-trail preserved.",
+    userAccount: "User Account",
+    userAccountPlaceholder: "Type to search accounts",
+    selectedUserId: "Selected user_id",
+    amount: "Amount",
+    amountHelp:
+        "Positive = recharge (token_recharges, source = ADMIN). Negative = deduct (token_usages, service = admin_adjust).",
+    remark: "Remark",
+    remarkPlaceholder: "Optional, will be saved on the recharge/usage row",
+    submit: "Apply",
+    submitting: "Applying...",
+    submitSuccess: "Adjustment applied",
+    newBalance: "New balance",
+    errInvalidUserId: "Please pick a user from the dropdown first",
+    errInvalidAmount: "Amount must be a non-zero integer",
+};
+
 const dockerAnalysis = {
     title: "Docker Analysis",
     description:
@@ -159,4 +180,5 @@ export default {
     modelEditor,
     component,
     dockerAnalysis,
+    balanceAdjust,
 };
