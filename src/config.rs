@@ -135,9 +135,11 @@ pub fn get_session_params() -> Result<SessionParams> {
 
 #[derive(Debug, Clone, Default, Validate, Deserialize)]
 pub struct DivingConfig {
-    // diving url
+    // diving image url
     #[validate(length(min = 1))]
-    pub url: String,
+    pub image_url: String,
+    // diving html(webpage) analyzer url
+    pub html_url: Option<String>,
     // WeCom robot webhook key (optional)
     pub notify_wecom: Option<String>,
     // 通知接收邮箱地址 (optional)

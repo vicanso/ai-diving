@@ -7,3 +7,4 @@
 \i create_token_prices.sql
 \i create_token_llms.sql
 \i create_docker_analyses.sql
+\i create_web_page_analyses.sql

@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const DEFAULT_TOKEN = "bae95b6d-ed59-4516-b43d-ad39e493957f";
-const STORAGE_KEY = "aidiving:image-submit";
+const STORAGE_KEY = "aidiving:web-submit";
 
 type NotifyType = "email" | "wecom";
 
 interface Persisted {
-    repoName: string;
-    tag: string;
+    url: string;
+    waitUntilLoad: boolean;
+    waitForElement: string;
     notifyType: NotifyType;
     notifyData: string;
     notifyForce: boolean;
@@ -41,10 +42,11 @@ interface Props {
     apiBase: string;
 }
 
-export function SubmitForm({ apiBase }: Props) {
+export function WebSubmitForm({ apiBase }: Props) {
     const initial = useMemo(loadPersisted, []);
-    const [repoName, setRepoName] = useState(initial.repoName ?? "");
-    const [tag, setTag] = useState(initial.tag ?? "latest");
+    const [url, setUrl] = useState(initial.url ?? "");
+    const [waitUntilLoad, setWaitUntilLoad] = useState(initial.waitUntilLoad ?? true);
+    const [waitForElement, setWaitForElement] = useState(initial.waitForElement ?? "");
     const [notifyType, setNotifyType] = useState<NotifyType>(
         initial.notifyType === "wecom" || initial.notifyType === "email"
             ? initial.notifyType
@@ -59,24 +61,33 @@ export function SubmitForm({ apiBase }: Props) {
         if (typeof window === "undefined") return;
         try {
             const payload: Persisted = {
-                repoName,
-                tag,
+                url,
+                waitUntilLoad,
+                waitForElement,
                 notifyType,
                 notifyData,
                 notifyForce,
             };
             window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
         } catch {
-            // 静默忽略 QuotaExceeded / 禁用 localStorage 等场景
+            // 静默忽略
         }
-    }, [repoName, tag, notifyType, notifyData, notifyForce]);
+    }, [url, waitUntilLoad, waitForElement, notifyType, notifyData, notifyForce]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const finalTag = tag.trim() || "latest";
-        const finalRepo = repoName.trim();
+        const finalUrl = url.trim();
         const finalNotifyData = notifyData.trim();
         const finalToken = token.trim();
+
+        if (!/^https?:\/\//i.test(finalUrl)) {
+            setState({
+                kind: "error",
+                message: "URL 需以 http:// 或 https:// 开头",
+            });
+            return;
+        }
+
         setState({ kind: "submitting" });
 
         const params = new URLSearchParams({
@@ -86,14 +97,24 @@ export function SubmitForm({ apiBase }: Props) {
             notify_force: notifyForce ? "true" : "false",
         });
 
+        const trimmedElement = waitForElement.trim();
+        const body: {
+            url: string;
+            wait_until_load: boolean;
+            wait_for_element?: string;
+        } = {
+            url: finalUrl,
+            wait_until_load: waitUntilLoad,
+        };
+        if (trimmedElement) {
+            body.wait_for_element = trimmedElement;
+        }
+
         try {
-            const res = await fetch(`${apiBase}/docker/analyze?${params.toString()}`, {
+            const res = await fetch(`${apiBase}/web_page/analyze?${params.toString()}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    push_data: { tag: finalTag },
-                    repository: { repo_name: finalRepo },
-                }),
+                body: JSON.stringify(body),
             });
             if (!res.ok) {
                 const text = await res.text().catch(() => "");
@@ -142,30 +163,55 @@ export function SubmitForm({ apiBase }: Props) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <CardContent className="flex flex-col gap-4">
                 <div className="grid gap-2">
-                    <Label htmlFor="repo">
-                        镜像仓库名 <span className="text-destructive">*</span>
+                    <Label htmlFor="w-url">
+                        页面 URL <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                        id="repo"
-                        placeholder="vicanso/static"
-                        value={repoName}
-                        onChange={(e) => setRepoName(e.target.value)}
+                        id="w-url"
+                        type="url"
+                        placeholder="https://example.com"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
                         required
                         disabled={submitting}
                         autoComplete="off"
+                        spellCheck={false}
                     />
                 </div>
 
+                <div className="flex items-start gap-2">
+                    <Checkbox
+                        id="w-wait-until-load"
+                        checked={waitUntilLoad}
+                        onCheckedChange={(v) => setWaitUntilLoad(v === true)}
+                        disabled={submitting}
+                        className="mt-0.5"
+                    />
+                    <div className="grid gap-1">
+                        <Label htmlFor="w-wait-until-load" className="cursor-pointer">
+                            等待 onload 即分析
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                            勾选时 diving 在 load 事件后即返回；取消时会等到 networkIdle（更彻底但更慢，适合长轮询站点）。默认勾选。
+                        </p>
+                    </div>
+                </div>
+
                 <div className="grid gap-2">
-                    <Label htmlFor="tag">Tag</Label>
+                    <Label htmlFor="w-wait-for-element">等待元素出现（可选）</Label>
                     <Input
-                        id="tag"
-                        placeholder="latest"
-                        value={tag}
-                        onChange={(e) => setTag(e.target.value)}
+                        id="w-wait-for-element"
+                        placeholder="#root / .main-content"
+                        value={waitForElement}
+                        onChange={(e) => setWaitForElement(e.target.value)}
                         disabled={submitting}
                         autoComplete="off"
+                        spellCheck={false}
+                        maxLength={500}
                     />
+                    <p className="text-xs text-muted-foreground">
+                        diving 在采集前等待匹配该 CSS 选择器的元素出现，适合 SPA 真实内容晚于 onload 渲染的场景。
+                    </p>
                 </div>
 
                 <div className="grid gap-2">
@@ -195,11 +241,11 @@ export function SubmitForm({ apiBase }: Props) {
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="notify-data">
+                    <Label htmlFor="w-notify-data">
                         {notifyLabel} <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                        id="notify-data"
+                        id="w-notify-data"
                         type={isEmail ? "email" : "text"}
                         placeholder={notifyPlaceholder}
                         value={notifyData}
@@ -213,14 +259,14 @@ export function SubmitForm({ apiBase }: Props) {
 
                 <div className="flex items-start gap-2">
                     <Checkbox
-                        id="notify-force"
+                        id="w-notify-force"
                         checked={notifyForce}
                         onCheckedChange={(v) => setNotifyForce(v === true)}
                         disabled={submitting}
                         className="mt-0.5"
                     />
                     <div className="grid gap-1">
-                        <Label htmlFor="notify-force" className="cursor-pointer">
+                        <Label htmlFor="w-notify-force" className="cursor-pointer">
                             强制推送
                         </Label>
                         <p className="text-xs text-muted-foreground">
@@ -230,11 +276,11 @@ export function SubmitForm({ apiBase }: Props) {
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="token">
+                    <Label htmlFor="w-token">
                         API Token <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                        id="token"
+                        id="w-token"
                         value={token}
                         onChange={(e) => setToken(e.target.value)}
                         required

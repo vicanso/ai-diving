@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/tabs";
 import { SubmitForm } from "@/views/submit-form";
 import { QueryView } from "@/views/query-view";
+import { WebSubmitForm } from "@/views/web-submit-form";
+import { WebQueryView } from "@/views/web-query-view";
 import logoUrl from "@/logo.png";
 
 const API_BASE = "/api";
@@ -106,33 +108,59 @@ function App() {
                     </span>
                 </div>
 
-                <Tabs defaultValue="submit" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="submit">提交分析</TabsTrigger>
-                        <TabsTrigger value="query">查询历史</TabsTrigger>
+                <Tabs defaultValue="image-submit" className="w-full flex flex-col gap-3">
+                    <TabsList className="grid w-full grid-cols-4">
+                        <TabsTrigger value="image-submit">镜像分析</TabsTrigger>
+                        <TabsTrigger value="image-query">镜像查询</TabsTrigger>
+                        <TabsTrigger value="web-submit">网页分析</TabsTrigger>
+                        <TabsTrigger value="web-query">网页查询</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="submit">
+                    <TabsContent value="image-submit">
                         <Card>
                             <CardHeader>
                                 <CardTitle>提交镜像分析</CardTitle>
                                 <CardDescription>
-                                    提交一个公开的 Docker 镜像，分析完成后通过邮件发送报告。
+                                    提交一个公开的 Docker 镜像，分析完成后通过邮件或企业微信发送报告。
                                 </CardDescription>
                             </CardHeader>
                             <SubmitForm apiBase={API_BASE} />
                         </Card>
                     </TabsContent>
 
-                    <TabsContent value="query">
+                    <TabsContent value="image-query">
                         <Card>
                             <CardHeader>
-                                <CardTitle>查询历史</CardTitle>
+                                <CardTitle>查询镜像分析历史</CardTitle>
                                 <CardDescription>
                                     按镜像仓库名查询最近 20 条分析记录，按时间倒序。
                                 </CardDescription>
                             </CardHeader>
                             <QueryView apiBase={API_BASE} />
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="web-submit">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>提交网页分析</CardTitle>
+                                <CardDescription>
+                                    提交一个公开访问的页面 URL，分析 Core Web Vitals、阻塞资源、图片浪费等，完成后通过邮件或企业微信发送报告。
+                                </CardDescription>
+                            </CardHeader>
+                            <WebSubmitForm apiBase={API_BASE} />
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="web-query">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>查询网页分析历史</CardTitle>
+                                <CardDescription>
+                                    按页面 URL 查询最近 20 条分析记录，按时间倒序；留空则查最近全局记录。
+                                </CardDescription>
+                            </CardHeader>
+                            <WebQueryView apiBase={API_BASE} />
                         </Card>
                     </TabsContent>
                 </Tabs>

@@ -44,6 +44,7 @@ mod router;
 mod sql;
 mod state;
 mod token;
+mod web_page;
 
 pub async fn handle_error(method: Method, uri: Uri, err: BoxError) -> tibba_error::Error {
     error!(method = method.to_string(), uri = uri.to_string(), err,);

@@ -22,6 +22,9 @@ use crate::docker::{
 use crate::sql::get_db_pool;
 use crate::state::get_app_state;
 use crate::token::adjust_balance as token_adjust_balance;
+use crate::web_page::{
+    analyze as web_page_analyze, list as web_page_list, list_urls as web_page_list_urls,
+};
 use axum::Router;
 use axum::routing::{get, post};
 use std::sync::Arc;
@@ -139,6 +142,12 @@ pub fn new_router() -> Result<Router> {
         .route("/repo_names", get(docker_list_repo_names))
         .with_state(get_db_pool());
 
+    let web_page_router = Router::new()
+        .route("/analyze", post(web_page_analyze))
+        .route("/analyses", get(web_page_list))
+        .route("/urls", get(web_page_list_urls))
+        .with_state(get_db_pool());
+
     let token_router = Router::new()
         .route("/balance/adjust", post(token_adjust_balance))
         .with_state(get_db_pool());
@@ -149,6 +158,7 @@ pub fn new_router() -> Result<Router> {
         .nest("/files", file_router)
         .nest("/models", model_router)
         .nest("/docker", docker_router)
+        .nest("/web_page", web_page_router)
         .nest("/token", token_router)
         .merge(common_router);
 
